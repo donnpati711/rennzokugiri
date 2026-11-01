@@ -2,14 +2,61 @@ const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d");
 const overlay = document.querySelector("#overlay");
 const startButton = document.querySelector("#start-button");
+const selectionPanel = document.querySelector("#selection-panel");
 const controls = new Set();
 const totalLaps = 3;
 const lapLength = 10000;
-const racers = [
-  { name: "NOVA", progress: 0, speed: 315, lane: -0.48, color: "#ff557a" },
-  { name: "BYTE", progress: 0, speed: 298, lane: 0.48, color: "#50d9ff" },
-  { name: "ACE", progress: 0, speed: 330, lane: 0.05, color: "#ffbd4a" },
+const stages = [
+  { name: "NEON HARBOR", description: "港の夜景と明るいコーナー", curve: 1, skyTop: "#6076a5", skyMid: "#f2a17f", skyBottom: "#f4d18e" },
+  { name: "MIDNIGHT MESA", description: "高原を駆ける高速コース", curve: 1.15, skyTop: "#425678", skyMid: "#d78d7b", skyBottom: "#f4d18e" },
+  { name: "CRYSTAL RIDGE", description: "氷の視界が切れる峠道", curve: 1.32, skyTop: "#3d5779", skyMid: "#7fc4d9", skyBottom: "#dff4ff" },
+  { name: "VOLCANIC RUN", description: "炎と噴煙に透かすカーブ", curve: 1.42, skyTop: "#474e6f", skyMid: "#d97f56", skyBottom: "#f6d07d" },
+  { name: "SILK SWITCH", description: "緩急が多い都市外環", curve: 1.08, skyTop: "#3d4b75", skyMid: "#f0a99c", skyBottom: "#f1d7a8" },
+  { name: "AQUA DRIFT", description: "水面の反射が強い平坦路", curve: 0.9, skyTop: "#5d7d9f", skyMid: "#8cc7d1", skyBottom: "#efecc3" },
+  { name: "EMBER GLEN", description: "木立の間を抜ける変則コース", curve: 1.18, skyTop: "#5c4a63", skyMid: "#ce8f72", skyBottom: "#f7d29c" },
+  { name: "ALPINE JET", description: "高空に向かう急カーブ", curve: 1.46, skyTop: "#445784", skyMid: "#a6b7e0", skyBottom: "#eef5ff" },
+  { name: "TURBO CANAL", description: "運河沿いのスピードライン", curve: 1.06, skyTop: "#496d86", skyMid: "#f2b08a", skyBottom: "#f7e0a2" },
+  { name: "ORBIT RING", description: "夜の大通りを高速で横断", curve: 1.2, skyTop: "#2a385d", skyMid: "#d18ae4", skyBottom: "#f6d9d1" },
+  { name: "SAND BLASTER", description: "砂埃の舞う広大な平地", curve: 1.28, skyTop: "#7f5d56", skyMid: "#d5ad65", skyBottom: "#f7e0b7" },
+  { name: "CLOUD SPUR", description: "雲が低い高原の軽快コース", curve: 1.02, skyTop: "#6e82a7", skyMid: "#add0d8", skyBottom: "#f6f2da" },
+  { name: "DUSK BOULEVARD", description: "日没を迎える都市線路", curve: 0.97, skyTop: "#4c5d8b", skyMid: "#e69589", skyBottom: "#f1d7a4" },
+  { name: "GHOST BAY", description: "湾曲した海沿いのスラローム", curve: 1.38, skyTop: "#334d7a", skyMid: "#8bb8d5", skyBottom: "#dfeffb" },
+  { name: "FURY TUNNEL", description: "トンネル内の短い追い抜き戦", curve: 1.24, skyTop: "#2d3354", skyMid: "#7aafaf", skyBottom: "#d8e4ef" },
+  { name: "RUSTIC LOOP", description: "山道の抜け道と密集カーブ", curve: 1.3, skyTop: "#556d6f", skyMid: "#dba177", skyBottom: "#f3d7b3" },
+  { name: "SOLAR DELTA", description: "逆光の夕方にインパクトを演出", curve: 1.1, skyTop: "#5671a8", skyMid: "#f7b276", skyBottom: "#fce6a7" },
+  { name: "NOVA GATE", description: "広くて見通しが良い技術コース", curve: 1.16, skyTop: "#486d9f", skyMid: "#d6b8ff", skyBottom: "#f3e5f6" },
+  { name: "MONOLITH LINE", description: "巨大構造物が並ぶ高速区間", curve: 1.22, skyTop: "#2f466f", skyMid: "#829cc3", skyBottom: "#e6ecff" },
+  { name: "PURE ECHO", description: "静寂に包まれた最終ラップ", curve: 1.14, skyTop: "#504a7d", skyMid: "#b6d6ff", skyBottom: "#eff9ff" },
 ];
+const carts = [
+  { name: "VOLT", style: "#c9ff57", speed: 1.0, acceleration: 1.02, handling: 1.0, description: "バランス型" },
+  { name: "AERON", style: "#53a6ff", speed: 1.08, acceleration: 1.0, handling: 1.08, description: "軽快型" },
+  { name: "BLAZE", style: "#ff7d68", speed: 1.12, acceleration: 1.14, handling: 0.95, description: "加速特化" },
+  { name: "NIX", style: "#8afad8", speed: 0.96, acceleration: 1.04, handling: 1.18, description: "旋回特化" },
+  { name: "RAVEN", style: "#d6a6ff", speed: 1.15, acceleration: 1.08, handling: 1.02, description: "全速力型" },
+  { name: "FALCON", style: "#ffbc58", speed: 1.06, acceleration: 0.98, handling: 1.16, description: "追い越し型" },
+  { name: "JET", style: "#58d9ff", speed: 1.2, acceleration: 1.06, handling: 0.98, description: "高速型" },
+  { name: "CINDER", style: "#ff6b9d", speed: 1.08, acceleration: 1.2, handling: 1.0, description: "立ち上がり型" },
+  { name: "MIRAGE", style: "#7ef1ff", speed: 1.16, acceleration: 1.02, handling: 1.1, description: "安定型" },
+  { name: "ORBIT", style: "#ffe36a", speed: 1.22, acceleration: 1.1, handling: 0.96, description: "最終速型" },
+];
+const cpuLevels = [
+  { label: "EASY", description: "少し楽な相手", multiplier: 1.08 },
+  { label: "STANDARD", description: "適度な競り合い", multiplier: 1.18 },
+  { label: "HARD", description: "かなり速い", multiplier: 1.3 },
+  { label: "INSANE", description: "プロ級の速さ", multiplier: 1.44 },
+];
+const racers = [
+  { name: "NOVA", progress: 0, speed: 315, lane: -0.48, color: "#ff557a", baseSpeed: 330 },
+  { name: "BYTE", progress: 0, speed: 298, lane: 0.48, color: "#50d9ff", baseSpeed: 320 },
+  { name: "ACE", progress: 0, speed: 330, lane: 0.05, color: "#ffbd4a", baseSpeed: 350 },
+];
+const selectionState = {
+  menuStep: "title",
+  stageIndex: 0,
+  cartIndex: 0,
+  cpuIndex: 1,
+};
 
 const state = {
   running: false,
@@ -21,6 +68,124 @@ const state = {
   hitCooldown: 0,
   lastFrame: 0,
 };
+
+function getSelectedStage() {
+  return stages[selectionState.stageIndex] || stages[0];
+}
+
+function getSelectedCart() {
+  return carts[selectionState.cartIndex] || carts[0];
+}
+
+function getSelectedCpu() {
+  return cpuLevels[selectionState.cpuIndex] || cpuLevels[1];
+}
+
+function renderSelectionPanel() {
+  const step = selectionState.menuStep;
+
+  if (step === "title") {
+    selectionPanel.classList.remove("is-visible");
+    selectionPanel.innerHTML = "";
+    return;
+  }
+
+  selectionPanel.classList.add("is-visible");
+
+  if (step === "stage") {
+    selectionPanel.innerHTML = `
+      <div class="selection-grid">
+        ${stages.map((item, index) => `
+          <button class="selection-button ${index === selectionState.stageIndex ? "is-selected" : ""}" data-selection="stage" data-index="${index}" type="button">
+            <strong>${item.name}</strong>
+            <small>${item.description}</small>
+          </button>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  if (step === "cart") {
+    selectionPanel.innerHTML = `
+      <div class="selection-grid">
+        ${carts.map((item, index) => `
+          <button class="selection-button cart-card ${index === selectionState.cartIndex ? "is-selected" : ""}" data-selection="cart" data-index="${index}" type="button" style="border-color: ${item.style}55;">
+            <strong>${item.name}</strong>
+            <span>${item.description}</span>
+            <div class="specs">
+              <div class="spec"><small>TOP</small><strong>${(item.speed * 100).toFixed(0)}</strong></div>
+              <div class="spec"><small>ACC</small><strong>${(item.acceleration * 100).toFixed(0)}</strong></div>
+              <div class="spec"><small>HAND</small><strong>${(item.handling * 100).toFixed(0)}</strong></div>
+            </div>
+          </button>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  if (step === "cpu") {
+    selectionPanel.innerHTML = `
+      <div class="selection-grid">
+        ${cpuLevels.map((item, index) => `
+          <button class="selection-button cpu-card ${index === selectionState.cpuIndex ? "is-selected" : ""}" data-selection="cpu" data-index="${index}" type="button">
+            <strong>${item.label}</strong>
+            <span>${item.description}</span>
+            <small>${item.multiplier.toFixed(2)}x</small>
+          </button>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  selectionPanel.querySelectorAll("[data-selection]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.selection;
+      const index = Number(button.dataset.index);
+      if (target === "stage") selectionState.stageIndex = index;
+      if (target === "cart") selectionState.cartIndex = index;
+      if (target === "cpu") selectionState.cpuIndex = index;
+      renderMenu();
+    });
+  });
+
+  document.querySelector("#button-label").textContent = selectionState.menuStep === "cpu" ? "スタート" : "次へ";
+}
+
+function renderMenu() {
+  const stage = getSelectedStage();
+  const cart = getSelectedCart();
+  const cpu = getSelectedCpu();
+  const step = selectionState.menuStep;
+
+  if (step === "title") {
+    document.querySelector("#overlay-eyebrow").textContent = "READY TO RACE?";
+    document.querySelector("#overlay-title").innerHTML = "OWN THE<br><span>TRACK.</span>";
+    document.querySelector("#overlay-copy").textContent = "ネオンのコースを駆け抜けて、1位でゴールしよう。";
+    document.querySelector("#button-label").textContent = "レーススタート";
+    renderSelectionPanel();
+    return;
+  }
+
+  if (step === "stage") {
+    document.querySelector("#overlay-eyebrow").textContent = "SELECT STAGE";
+    document.querySelector("#overlay-title").innerHTML = "PICK THE<br><span>TRACK.</span>";
+    document.querySelector("#overlay-copy").textContent = `${stage.name} - ${stage.description}`;
+  }
+
+  if (step === "cart") {
+    document.querySelector("#overlay-eyebrow").textContent = "SELECT CART";
+    document.querySelector("#overlay-title").innerHTML = "CHOOSE YOUR<br><span>CART.</span>";
+    document.querySelector("#overlay-copy").textContent = `${cart.name} - ${cart.description}`;
+  }
+
+  if (step === "cpu") {
+    document.querySelector("#overlay-eyebrow").textContent = "CPU LEVEL";
+    document.querySelector("#overlay-title").innerHTML = "SET THE<br><span>RIVAL.</span>";
+    document.querySelector("#overlay-copy").textContent = `${cpu.label} - ${cpu.description}`;
+  }
+
+  renderSelectionPanel();
+}
 
 let width = 0;
 let height = 0;
@@ -38,11 +203,13 @@ function resize() {
 }
 
 function curveAt(distance) {
-  return Math.sin(distance / 1180) * 0.72 + Math.sin(distance / 470 + 1.4) * 0.18;
+  const stage = getSelectedStage();
+  return (Math.sin(distance / 1180) * 0.72 + Math.sin(distance / 470 + 1.4) * 0.18) * stage.curve;
 }
 
 function roadCenter(ahead) {
-  return width * 0.5 + (curveAt(state.distance + ahead) - curveAt(state.distance)) * width * 0.27;
+  const stage = getSelectedStage();
+  return width * 0.5 + (curveAt(state.distance + ahead) - curveAt(state.distance)) * width * (0.27 + (stage.curve - 1) * 0.08);
 }
 
 function roadWidth(depth) {
@@ -55,10 +222,11 @@ function roadY(depth) {
 }
 
 function drawBackground() {
+  const stage = getSelectedStage();
   const sky = ctx.createLinearGradient(0, 0, 0, height * 0.55);
-  sky.addColorStop(0, "#6076a5");
-  sky.addColorStop(0.58, "#f2a17f");
-  sky.addColorStop(1, "#f4d18e");
+  sky.addColorStop(0, stage.skyTop);
+  sky.addColorStop(0.58, stage.skyMid);
+  sky.addColorStop(1, stage.skyBottom);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, width, height);
 
@@ -234,7 +402,7 @@ function drawPlayer() {
   const center = roadCenter(0);
   const y = height * 0.84;
   const x = center + state.steer * roadWidth(0.78);
-  drawCar(x, y, Math.min(1.15, width / 700), "#c9ff57", true);
+  drawCar(x, y, Math.min(1.15, width / 700), getSelectedCart().style, true);
 }
 
 function draw() {
@@ -271,11 +439,12 @@ function update(delta) {
   const gas = controls.has("gas") || controls.has("up");
   const braking = controls.has("down");
   const steering = (controls.has("right") || controls.has("rightkey") ? 1 : 0) - (controls.has("left") || controls.has("leftkey") ? 1 : 0);
-  const maxSpeed = 390;
-  state.speed += (gas ? 245 : -105) * delta;
+  const cart = getSelectedCart();
+  const maxSpeed = 390 * cart.speed;
+  state.speed += (gas ? 245 * cart.acceleration : -105) * delta;
   if (braking) state.speed -= 270 * delta;
   state.speed = Math.max(0, Math.min(maxSpeed, state.speed));
-  state.steer += (steering * (0.95 + state.speed / maxSpeed * 1.05) - state.steer * 2.8) * delta;
+  state.steer += (steering * (0.95 + state.speed / maxSpeed * 1.05) * cart.handling - state.steer * 2.8) * delta;
   state.steer = Math.max(-1.3, Math.min(1.3, state.steer));
   if (Math.abs(state.steer) > 0.88) state.speed = Math.max(100, state.speed - 95 * delta);
   state.distance += state.speed * delta;
@@ -308,6 +477,7 @@ function frame(timestamp) {
 }
 
 function startRace() {
+  const cpu = getSelectedCpu();
   state.running = true;
   state.finished = false;
   state.distance = 0;
@@ -317,6 +487,7 @@ function startRace() {
   state.hitCooldown = 0;
   for (const [index, racer] of racers.entries()) {
     racer.progress = index === 2 ? 80 : 0;
+    racer.speed = racer.baseSpeed * cpu.multiplier;
   }
   controls.clear();
   overlay.classList.add("is-hidden");
@@ -343,7 +514,41 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => controls.clear());
-startButton.addEventListener("click", startRace);
+startButton.addEventListener("click", () => {
+  if (!state.running && !state.finished && selectionState.menuStep === "title") {
+    selectionState.menuStep = "stage";
+    renderMenu();
+    return;
+  }
+
+  if (!state.running && !state.finished && selectionState.menuStep === "stage") {
+    selectionState.menuStep = "cart";
+    renderMenu();
+    return;
+  }
+
+  if (!state.running && !state.finished && selectionState.menuStep === "cart") {
+    selectionState.menuStep = "cpu";
+    renderMenu();
+    return;
+  }
+
+  if (!state.running && !state.finished && selectionState.menuStep === "cpu") {
+    startRace();
+    return;
+  }
+
+  if (state.finished) {
+    state.finished = false;
+    state.running = false;
+    selectionState.menuStep = "title";
+    renderMenu();
+    overlay.classList.remove("is-hidden");
+    return;
+  }
+
+  startRace();
+});
 
 document.querySelectorAll("[data-control]").forEach((button) => {
   const control = button.dataset.control;
@@ -363,6 +568,7 @@ document.querySelectorAll("[data-control]").forEach((button) => {
 });
 
 window.addEventListener("resize", resize);
+renderMenu();
 resize();
 updateHud();
 requestAnimationFrame(frame);
