@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10172b">
+    <title>NEON CIRCUIT — Arcade Racer</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Neon Circuit ホーム">
+          <span class="brand-mark">N</span>
+          <span>NEON<span class="brand-accent"> CIRCUIT</span></span>
+        </a>
+        <span class="mode-label"><span class="live-dot"></span> GRAND PRIX · 3 LAPS</span>
+      </header>
+
+      <section class="race-frame" aria-label="レース画面">
+        <canvas id="game" aria-label="NEON CIRCUIT レース"></canvas>
+
+        <div class="hud" aria-live="polite">
+          <div class="hud-card position-card">
+            <span class="hud-label">POSITION</span>
+            <strong><span id="position">1</span><small> / 4</small></strong>
+          </div>
+          <div class="hud-card lap-card">
+            <span class="hud-label">LAP</span>
+            <strong><span id="lap">1</span><small> / 3</small></strong>
+          </div>
+          <div class="hud-card speed-card">
+            <span class="hud-label">SPEED</span>
+            <strong><span id="speed">000</span><small> km/h</small></strong>
+          </div>
+          <div class="race-clock" id="clock">00:00.0</div>
+        </div>
+
+        <div class="overlay" id="overlay">
+          <div class="overlay-panel">
+            <p class="eyebrow" id="overlay-eyebrow">READY TO RACE?</p>
+            <h1 id="overlay-title">OWN THE<br><span>TRACK.</span></h1>
+            <p class="overlay-copy" id="overlay-copy">ネオンのコースを駆け抜けて、1位でゴールしよう。</p>
+            <button class="start-button" id="start-button" type="button">
+              <span id="button-label">レーススタート</span><span aria-hidden="true">→</span>
+            </button>
+            <p class="key-hint">操作 <kbd>↑</kbd><kbd>←</kbd><kbd>→</kbd> または <kbd>W</kbd><kbd>A</kbd><kbd>D</kbd></p>
+          </div>
+        </div>
+
+        <div class="touch-controls" aria-label="タッチ操作">
+          <button class="control-button steer-button" data-control="left" aria-label="左に曲がる">←</button>
+          <button class="control-button steer-button" data-control="right" aria-label="右に曲がる">→</button>
+          <button class="control-button gas-button" data-control="gas" aria-label="アクセル">GO<span>▲</span></button>
+        </div>
+      </section>
+      <footer class="footer">
+        <span>◎ &nbsp; RACE THE NIGHT</span>
+        <span>DRIVE FAST. STAY SHARP.</span>
+      </footer>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
